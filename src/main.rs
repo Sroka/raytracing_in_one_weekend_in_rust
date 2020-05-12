@@ -14,11 +14,13 @@ use crate::camera::Camera;
 use crate::point3::Point3;
 use crate::ray::{Ray, HitResult};
 use crate::color::Color;
+use rand::{thread_rng, Rng};
 
 const IMAGE_RESOLUTION: i16 = 256;
+const SAMPLES_PER_PIXEL: i16 = 100;
 
 fn main() {
-    let mut image_file = File::create("result.ppm").unwrap();
+    let mut image_file = File::create("target/result.ppm").unwrap();
     let camera = Camera::new(Point3::new(0.0, 0.0, 1.0), 16.0 / 9.0);
     let image_width = IMAGE_RESOLUTION;
     let image_height = (IMAGE_RESOLUTION as f64 / camera.aspect_ratio) as i16;
@@ -34,18 +36,22 @@ fn main() {
     };
     let shapes = vec![sphere1.clone(), sphere2.clone()];
     write!(image_file, "P3\n{}\n{}\n255\n", image_width, image_height);
+    let mut rng = thread_rng();
     for y in (0..image_height).rev() {
         // print!("\rScanlines remaining: {}", y);
         for x in 0..image_width {
-            let u = x as f64 / (image_width - 1) as f64;
-            let v = y as f64 / (image_height - 1) as f64;
-            let ray = Ray::new(camera.position,
-                               camera.film_lower_left_corner()
-                                   + u * horizontal
-                                   + v * vertical,
-            );
-
-            let pixel_color = ray_color(&ray, &shapes);
+            let mut pixel_color = Color::new(0., 0., 0.);
+            for sample_index in 0..SAMPLES_PER_PIXEL {
+                let u = (x as f64 + rng.gen_range(0., 1.)) / (image_width - 1) as f64;
+                let v = (y as f64 + rng.gen_range(0., 1.)) / (image_height - 1) as f64;
+                let ray = Ray::new(camera.position,
+                                   camera.film_lower_left_corner()
+                                       + u * horizontal
+                                       + v * vertical,
+                );
+                pixel_color += &ray_color(&ray, &shapes);
+            }
+            pixel_color /= 100.;
             image_file.write(pixel_color.ppm_color().as_bytes());
             // println!("x: {}, y: {}, color: {}", x, y, color.ppm_color())
         }
