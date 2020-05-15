@@ -26,6 +26,6 @@ impl Camera {
     }
 
     pub fn film_lower_left_corner(&self) -> Point3 {
-        self.position + Vec3::new(-self.film_width / 2.0, -self.film_height / 2.0, self.film_distance)
+        Vec3::new(-self.film_width / 2.0, -self.film_height / 2.0, -self.film_distance)
     }
 }

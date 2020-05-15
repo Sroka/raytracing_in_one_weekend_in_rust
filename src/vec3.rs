@@ -139,13 +139,27 @@ impl Vec3 {
 
 impl Vec3 {
     pub fn ppm_color(&self) -> String {
-        format!("{} {} {}\n", (255.999 * self.x) as i32, (255.999 * self.y) as i32, (255.999 * self.z) as i32)
+        let r = self.x;
+        let g = self.y;
+        let b = self.z;
+        // Divide the color total by the number of samples and gamma-correct for gamma=2.0.
+        let r = r.sqrt();
+        let g = g.sqrt();
+        let b = b.sqrt();
+        format!("{} {} {}\n",
+                (255.999 * r.max(0.).min(0.999)) as i32,
+                (255.999 * g.max(0.).min(0.999)) as i32,
+                (255.999 * b.max(0.).min(0.999)) as i32)
     }
 }
 
 impl Vec3 {
     pub fn length(&self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+    }
+
+    pub fn length_squared(&self) -> f64 {
+        self.x * self.x + self.y * self.y + self.z * self.z
     }
 
     pub fn normalized(&self) -> Vec3 {
