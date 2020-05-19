@@ -7,6 +7,8 @@ mod point3;
 mod ray;
 mod camera;
 mod shapes;
+mod material;
+mod entities;
 
 use vec3::Vec3;
 use shapes::Shape;
@@ -16,6 +18,9 @@ use crate::ray::{Ray, HitResult};
 use crate::color::Color;
 use rand::{thread_rng, Rng, RngCore};
 use std::f64::consts::PI;
+use crate::entities::Entity;
+use crate::material::Material;
+use crate::material::Material::Lambertian;
 
 const IMAGE_RESOLUTION: i16 = 512;
 const SAMPLES_PER_PIXEL: i16 = 10;
@@ -27,14 +32,20 @@ fn main() {
     let image_height = (IMAGE_RESOLUTION as f64 / camera.aspect_ratio) as i16;
     let horizontal = Vec3::new(camera.film_width, 0.0, 0.0);
     let vertical = Vec3::new(0.0, camera.film_height, 0.0);
-    let sphere1 = Shape::Sphere {
-        position: Point3::new(0.0, 0.0, -1.0),
-        radius: 0.5,
-    };
-    let sphere2 = Shape::Sphere {
-        position: Point3::new(-0., 100.5, -1.),
-        radius: 100.,
-    };
+    let sphere1 = Entity::new(
+        Shape::Sphere {
+            position: Point3::new(0.0, 0.0, -1.0),
+            radius: 0.5,
+        },
+        Lambertian {},
+    );
+    let sphere2 = Entity::new(
+        Shape::Sphere {
+            position: Point3::new(-0., 100.5, -1.),
+            radius: 100.,
+        },
+        Lambertian {},
+    );
     let shapes = vec![sphere1.clone(), sphere2.clone()];
     write!(image_file, "P3\n{}\n{}\n255\n", image_width, image_height);
     let mut rng = thread_rng();
@@ -59,7 +70,7 @@ fn main() {
     }
 }
 
-fn ray_color(ray: &Ray, depth: i16, shapes: &Vec<Shape>, rng: &mut dyn RngCore) -> Color {
+fn ray_color(ray: &Ray, depth: i16, shapes: &Vec<Entity>, rng: &mut dyn RngCore) -> Color {
     if depth <= 0 {
         return Color::new(0., 0., 0.);
     }
